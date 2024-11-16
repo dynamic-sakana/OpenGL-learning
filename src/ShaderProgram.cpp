@@ -1,5 +1,5 @@
 #include "ShaderProgram.h"
-
+#include "Util.h"
 ShaderProgram::ShaderProgram(const char* vsPath, const char* fsPath) {
 	GLuint vs = this->CompileShader(GL_VERTEX_SHADER, vsPath);
 	GLuint fs = this->CompileShader(GL_FRAGMENT_SHADER, fsPath);
@@ -35,7 +35,27 @@ ShaderProgram::~ShaderProgram() {
 	CALL(glDeleteProgram(program));
 }
 
+void ShaderProgram::SetTexture(const char* name, Texture2D* texture) {
+	int unit = -1;
+	for (int i = 0; i < MAX_TEXTURE_UNIT_ACCOUNT; i++) {
+		if (unitAvailable[i]) {
+			unit = i;
+			unitAvailable[i] = false;
+			break;
+		}
+	}
+	CALL(glActiveTexture(GL_TEXTURE0 + unit));
+	CALL(glBindTexture(GL_TEXTURE_2D, texture->textId));
+	GLuint location = GetUniformLocation("name");
+	if (location < 0)
+		ERROR_LOG("No corresponding texture.");
+	CALL(glUniform1i(location, unit));
+}
+
 void ShaderProgram::Apply() {
+	for (int i = 0; i < MAX_TEXTURE_UNIT_ACCOUNT; i++) {
+		unitAvailable[i] = true;
+	}
 	CALL(glUseProgram(program));
 }
 

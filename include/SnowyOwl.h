@@ -36,9 +36,3 @@ namespace SnowyOwl {
 #define CALL(x) x
 #define ERROR_LOG(x)
 #endif
-
-#include "Renderer.h"
-#include "Window.h"
-#include "Util.h"
-#include "ShaderProgram.h"
-#include "Camera.h"

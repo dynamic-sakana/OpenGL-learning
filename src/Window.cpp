@@ -1,5 +1,6 @@
 #include "SnowyOwl.h"
-
+#include "Window.h"
+#include "Renderer.h"
 Window::Window(HINSTANCE hInstance, STRING windowClass) {
 	this->hInstance = hInstance;
 	this->windowClass = STRING(windowClass.begin(), windowClass.end());

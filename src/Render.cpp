@@ -1,5 +1,8 @@
 #include "SnowyOwl.h"
 #include "Renderer.h"
+#include "Camera.h"
+#include "ShaderProgram.h"
+#include "Util.h"
 #include <chrono>
 Renderer::Renderer(HWND handle, int width, int height) {
 	this->handle = handle;
@@ -13,6 +16,8 @@ Renderer::Renderer(HWND handle, int width, int height) {
 	CALL(glViewport(0, 0, width, height));
 	program = new ShaderProgram("assets/VertShader.vert", "assets/FragShader.frag");
 	camera = new Camera();
+	mesh = new Mesh("assets/teapot.obj");
+	text = new Texture2D("assets/text.jpg");
 	this->InitializeGL();
 }
 
@@ -62,7 +67,7 @@ void Renderer::InitializeGL() {
 	// 将vert中的数据移到显存中，使用VAO监视并记录VBO中的数据
 	CALL(glGenVertexArrays(1, &VAO));
 	CALL(glBindVertexArray(VAO));
-	VBO = Util::CreateGLBuffer(GL_ARRAY_BUFFER, sizeof(vert), vert, GL_STATIC_DRAW);
+	VBO = Util::CreateGLBuffer(GL_ARRAY_BUFFER, mesh->vertexCount * sizeof(Vertex), mesh->vertices, GL_STATIC_DRAW);
 	CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
 
 	program->ParseVBOData("pos", 3, GL_FLOAT, false, 8 * sizeof(float), 0);
@@ -73,31 +78,12 @@ void Renderer::InitializeGL() {
 	CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	CALL(glBindVertexArray(0));
 
-	CALL(glGenTextures(1, &text1));
-	CALL(glBindTexture(GL_TEXTURE_2D, text1));
-	// 设置环绕方式
-	CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-	// 设置过滤方式
-	CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST));
-	CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	EBO = Util::CreateGLBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexCount * sizeof(uint32_t), mesh->indices, GL_STATIC_DRAW);
 
-	Image text("assets/text.jpg");
-
-	CALL(glTexImage2D(
-		GL_TEXTURE_2D,	// 纹理类型
-		0,				// mipmap等级
-		GL_RGBA, 		// 纹理的格式
-		text.width,
-		text.height,
-		0,
-		GL_RGBA,
-		GL_UNSIGNED_BYTE,
-		text.data
-	));
-	CALL(glGenerateMipmap(GL_TEXTURE_2D));
-
-	CALL(glBindTexture(GL_TEXTURE_2D, 0));
+	CALL(glEnable(GL_CULL_FACE));
+	CALL(glCullFace(GL_BACK));
+	CALL(glPolygonMode(GL_FRONT, GL_FILL));
+	CALL(glEnable(GL_DEPTH_TEST));
 }
 
 void Renderer::Render() {
@@ -107,12 +93,11 @@ void Renderer::Render() {
 
 	program->Apply();
 
-	CALL(glActiveTexture(GL_TEXTURE0));
-	CALL(glBindTexture(GL_TEXTURE_2D, text1));
-	CALL(glUniform1i(smp1, 0));
+	program->SetTexture("sampler1", text);
 
 	glm::mat4 model(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -3.0f));
+	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -6.0f));
+	model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 
 	glm::mat4 view = camera->GetViewMat();
 
@@ -123,7 +108,10 @@ void Renderer::Render() {
 	program->SetUniformM4("projMat", false, proj);
 
 	CALL(glBindVertexArray(VAO));
-	CALL(glDrawArrays(GL_QUADS, 0, 4));							// 绘制VAO
+	CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO));
+	CALL(glDrawElements(GL_TRIANGLES, mesh->indexCount, GL_UNSIGNED_INT, NULL));
+	// CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
+	// CALL(glDrawArrays(GL_TRIANGLES, 0, mesh->vertexCount));
 
 	double frameInterval = GetFrameInterval();
 	if (w_pressed)
@@ -139,10 +127,10 @@ void Renderer::Render() {
 	if (q_pressed)
 		camera->Translate(0, -cameraSpeed * frameInterval, 0);
 
-	// if ((mouseMoveX || mouseMoveY) && lclicked) {
-	// 	camera->Rotate(mouseMoveY * rotateSpeed, mouseMoveX * rotateSpeed);
-	// }
-	camera->Rotate(0.02, 0);
+	if ((mouseMoveX || mouseMoveY) && lclicked) {
+		camera->Rotate(- mouseMoveY * rotateSpeed, - mouseMoveX * rotateSpeed);
+	}
+	mouseMoveY = mouseMoveX = 0;
 
 	SwapBuffers(deviceContext);
 }

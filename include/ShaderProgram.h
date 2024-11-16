@@ -1,6 +1,7 @@
 #pragma once
 #include "SnowyOwl.h"
-
+#include "Texture2D.h"
+#define MAX_TEXTURE_UNIT_ACCOUNT 32
 class ShaderProgram {
 public:
 	/**
@@ -9,12 +10,13 @@ public:
 	 * @param fsPath 片元着色器文件位置
 	 */
 	ShaderProgram(const char* vsPath, const char* fsPath);
-	ShaderProgram() = default;
 
 	/**
 	 * @brief 析构Shader对象，删除program
 	 */
 	~ShaderProgram();
+
+	void SetTexture(const char* name, Texture2D* texture);
 
 	/**
 	 * @brief 告诉着色器程序如何解析VBO缓冲中的数据，使用前需绑定相应的VBO
@@ -44,6 +46,7 @@ private:
 	inline GLuint CompileShader(GLenum shaderType, const char* shaderPath);
 
 	GLuint program;
+	bool unitAvailable[];
 };
 
 inline void ShaderProgram::ParseVBOData(const char* name, int dimension, GLenum type, bool normalize, int stride, size_t offset) {

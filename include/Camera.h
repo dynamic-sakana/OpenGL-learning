@@ -3,7 +3,7 @@
 class Camera {
 public:
 	Camera();
-	~Camera();
+	~Camera() = default;
 
 	/**
 	 * @brief 设置这台摄像机的位置
@@ -40,6 +40,9 @@ public:
 	glm::mat4 GetViewMat();
 
 private:
+
+	void UpdateVectors();
+	void ClampRotation();
 	glm::vec3 position;
 	glm::vec3 rotation;
 	
