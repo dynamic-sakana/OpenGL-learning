@@ -1,5 +1,4 @@
-#include "Window.h"
-using namespace SnowyOwl;
+#include "SnowyOwl.h"
 
 Window::Window(HINSTANCE hInstance, STRING windowClass) {
 	this->hInstance = hInstance;
@@ -66,7 +65,7 @@ bool Window::Initialize(STRING windowTitle, int width, int height, int nCmdShow)
 
 	if (!handle)
 		throw;
-	
+
 	this->OnStart();
 
 	ShowWindow(handle, nCmdShow);	// 显示窗口
@@ -130,10 +129,38 @@ LRESULT CALLBACK Window::WinProc(HWND handle, UINT uMsg, WPARAM wParam, LPARAM l
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_KEYDOWN:	// 键盘点击
+		renderer->WhenKeyPress((int)wParam);
+		return 0;
+	case WM_KEYUP:		// 键盘松开
+		renderer->WhenKeyLoose((int)wParam);
+		return 0;
+	case WM_LBUTTONDOWN:// 左键点击
+		renderer->WhenMouseClick(WM_LBUTTONDOWN);
+		return 0;
+	case WM_MBUTTONDOWN:// 中键点击
+		renderer->WhenMouseClick(WM_MBUTTONDOWN);
+		return 0;
+	case WM_RBUTTONDOWN:// 右键点击
+		renderer->WhenMouseClick(WM_RBUTTONDOWN);
+		return 0;
+	case WM_LBUTTONUP:	// 左键松开
+		renderer->WhenMouseLoose(WM_LBUTTONUP);
+		return 0;
+	case WM_MBUTTONUP:	// 中键松开
+		renderer->WhenMouseLoose(WM_MBUTTONUP);
+		return 0;
+	case WM_RBUTTONUP:	// 右键松开
+		renderer->WhenMouseLoose(WM_RBUTTONUP);
+		return 0;
+	case WM_MOUSEMOVE:
+		renderer->WhenMouseMove(LOWORD(lParam), HIWORD(lParam));
+		return 0;
 	case WM_SIZE:
 		RECT rect;
 		GetClientRect(handle, &rect);
 		renderer->Resize(rect.right - rect.left, rect.bottom - rect.top);
+		return 0;
 	default:
 		return DefWindowProc(handle, uMsg, wParam, lParam);
 	}
