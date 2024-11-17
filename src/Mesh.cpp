@@ -90,3 +90,8 @@ Mesh::Mesh(const char* url) {
 	}
 	this->faceCount = this->indexCount / 3;
 }
+
+Mesh::~Mesh() {
+	delete[] indices;
+	delete[] vertices;
+}

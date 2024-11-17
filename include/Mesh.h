@@ -12,6 +12,7 @@ class Mesh
 {
 public:
 	Mesh(const char* url);
+	~Mesh();
 	uint32_t indexCount;
 	uint32_t* indices;
 	uint32_t vertexCount;

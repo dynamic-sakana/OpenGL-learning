@@ -17,7 +17,7 @@ Renderer::Renderer(HWND handle, int width, int height) {
 	program = new ShaderProgram("assets/VertShader.vert", "assets/FragShader.frag");
 	camera = new Camera();
 	mesh = new Mesh("assets/teapot.obj");
-	text = new Texture2D("assets/text.jpg");
+	text = new Texture2D("assets/teapot.png");
 	this->InitializeGL();
 }
 
@@ -79,7 +79,7 @@ void Renderer::InitializeGL() {
 	CALL(glBindVertexArray(0));
 
 	EBO = Util::CreateGLBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexCount * sizeof(uint32_t), mesh->indices, GL_STATIC_DRAW);
-
+	mesh->~Mesh();
 	CALL(glEnable(GL_CULL_FACE));
 	CALL(glCullFace(GL_BACK));
 	CALL(glPolygonMode(GL_FRONT, GL_FILL));
