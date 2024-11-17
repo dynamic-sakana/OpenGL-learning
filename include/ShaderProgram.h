@@ -16,10 +16,15 @@ public:
 	 */
 	~ShaderProgram();
 
+	/**
+	 * @brief 设置shader program采样器采样的纹理来自于哪一个纹理对象
+	 * @param name 采样器名称
+	 * @param texture 新的纹理对象
+	 */
 	void SetTexture(const char* name, Texture2D* texture);
 
 	/**
-	 * @brief 告诉着色器程序如何解析VBO缓冲中的数据，使用前需绑定相应的VBO
+	 * @brief 告诉着色器程序如何解析VBO缓冲中的数据，使用前需绑定相应的VBO，这个函数是对glVertexAttributePinter函数的封装
 	 * @param name 这个属性对应的着色器程序输入
 	 * @param dimension 这个属性的维度
 	 * @param type 这个属性的数据类型
@@ -29,8 +34,26 @@ public:
 	 */
 	inline void ParseVBOData(const char* name, int dimension, GLenum type, bool normalize, int stride, size_t offset);
 
+	/**
+	 * @brief 设置mat4类型的uniform变量
+	 * @param name 该uniform变量的值
+	 * @param transpose 是否转置
+	 * @param value 要传入的矩阵
+	 */
 	inline void SetUniformM4(const char* name, bool transpose, const glm::mat4& value);
+
+	/**
+	 * @brief 获取该shader program的变量位置
+	 * @param name 该变量的名称
+	 * @return GLuint 该变量在shader program中的编号
+	 */
 	inline GLuint GetAttributeLocation(const char* name);
+
+	/**
+	 * @brief 获取该shader program的uniform变量位置
+	 * @param name 该变量的名称
+	 * @return GLuint 该变量在shader program中的编号
+	 */
 	inline GLuint GetUniformLocation(const char* name);
 
 	/**
@@ -42,6 +65,7 @@ public:
 	 * @brief 禁用这个Shader
 	 */
 	void Stop();
+	
 private:
 	inline GLuint CompileShader(GLenum shaderType, const char* shaderPath);
 

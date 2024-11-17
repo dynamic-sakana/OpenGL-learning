@@ -63,8 +63,8 @@ Mesh::Mesh(const char* url) {
 				int currentVertexCount = vertices.size();
 				// 重复性检查
 				for (int k = 0; k < currentVertexCount; k++) {
-					if (vertices[k].posIndex == vi.posIndex&&
-						vertices[k].textureIndex == vi.textureIndex&&
+					if (vertices[k].posIndex == vi.posIndex &&
+						vertices[k].textureIndex == vi.textureIndex &&
 						vertices[k].normalIndex == vi.normalIndex) {
 						index = k;
 						break;

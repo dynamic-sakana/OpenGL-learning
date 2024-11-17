@@ -16,9 +16,14 @@ Renderer::Renderer(HWND handle, int width, int height) {
 	CALL(glViewport(0, 0, width, height));
 	program = new ShaderProgram("assets/VertShader.vert", "assets/FragShader.frag");
 	camera = new Camera();
-	mesh = new Mesh("assets/teapot.obj");
-	text = new Texture2D("assets/teapot.png");
+	model = new Model("assets/Sam.obj");
+	text = new Texture2D("assets/Sam.png");
 	this->InitializeGL();
+
+	CALL(glEnable(GL_CULL_FACE));
+	CALL(glCullFace(GL_BACK));
+	CALL(glPolygonMode(GL_FRONT, GL_FILL));
+	CALL(glEnable(GL_DEPTH_TEST));
 }
 
 Renderer::~Renderer() {
@@ -62,28 +67,9 @@ void Renderer::Resize(int newWidth, int newHeight) {
 }
 
 void Renderer::InitializeGL() {
-	smp1 = program->GetUniformLocation("smp1");
-
-	// 将vert中的数据移到显存中，使用VAO监视并记录VBO中的数据
-	CALL(glGenVertexArrays(1, &VAO));
-	CALL(glBindVertexArray(VAO));
-	VBO = Util::CreateGLBuffer(GL_ARRAY_BUFFER, mesh->vertexCount * sizeof(Vertex), mesh->vertices, GL_STATIC_DRAW);
-	CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
-
-	program->ParseVBOData("pos", 3, GL_FLOAT, false, 8 * sizeof(float), 0);
-	program->ParseVBOData("color", 3, GL_FLOAT, false, 8 * sizeof(float), 3 * sizeof(float));
-	program->ParseVBOData("uv", 2, GL_FLOAT, false, 8 * sizeof(float), 6 * sizeof(float));
-
-	// 解绑VAO和VBO
-	CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
-	CALL(glBindVertexArray(0));
-
-	EBO = Util::CreateGLBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->indexCount * sizeof(uint32_t), mesh->indices, GL_STATIC_DRAW);
-	mesh->~Mesh();
-	CALL(glEnable(GL_CULL_FACE));
-	CALL(glCullFace(GL_BACK));
-	CALL(glPolygonMode(GL_FRONT, GL_FILL));
-	CALL(glEnable(GL_DEPTH_TEST));
+	model->SetShader(program);
+	model->SetTexture("sampler1", text);
+	model->Translate(glm::vec3(0.0f, 0.0f, -10.0f));
 }
 
 void Renderer::Render() {
@@ -91,33 +77,25 @@ void Renderer::Render() {
 	CALL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));					// 设置背景颜色
 	CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));	// 清理颜色缓冲、深度缓冲
 
-	program->Apply();
-
-	program->SetTexture("sampler1", text);
-
-	glm::mat4 model(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, -6.0f));
-	model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 
 	glm::mat4 view = camera->GetViewMat();
 
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
-	program->SetUniformM4("modelMat", false, model);
-	program->SetUniformM4("viewMat", false, view);
-	program->SetUniformM4("projMat", false, proj);
+	model->Draw(view, proj);
 
-	CALL(glBindVertexArray(VAO));
-	CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO));
-	CALL(glDrawElements(GL_TRIANGLES, mesh->indexCount, GL_UNSIGNED_INT, NULL));
-	// CALL(glBindBuffer(GL_ARRAY_BUFFER, VBO));
-	// CALL(glDrawArrays(GL_TRIANGLES, 0, mesh->vertexCount));
+	float frameInterval = GetFrameInterval();
 
-	double frameInterval = GetFrameInterval();
+	CameraMove(frameInterval);
+
+	SwapBuffers(deviceContext);
+}
+
+inline void Renderer::CameraMove(float frameInterval) {
 	if (w_pressed)
 		camera->Translate(0, 0, cameraSpeed * frameInterval);
 	if (s_pressed)
-		camera->Translate(0, 0, - cameraSpeed * frameInterval);
+		camera->Translate(0, 0, -cameraSpeed * frameInterval);
 	if (a_pressed)
 		camera->Translate(-cameraSpeed * frameInterval, 0, 0);
 	if (d_pressed)
@@ -126,13 +104,10 @@ void Renderer::Render() {
 		camera->Translate(0, cameraSpeed * frameInterval, 0);
 	if (q_pressed)
 		camera->Translate(0, -cameraSpeed * frameInterval, 0);
-
 	if ((mouseMoveX || mouseMoveY) && lclicked) {
-		camera->Rotate(- mouseMoveY * rotateSpeed, - mouseMoveX * rotateSpeed);
+		camera->Rotate(-mouseMoveY * rotateSpeed, -mouseMoveX * rotateSpeed);
 	}
 	mouseMoveY = mouseMoveX = 0;
-
-	SwapBuffers(deviceContext);
 }
 
 void Renderer::WhenKeyPress(int keyNo) {
@@ -218,7 +193,7 @@ void Renderer::WhenMouseMove(int currentX, int currentY) {
 	initY = currentY;
 }
 
-double Renderer::GetFrameInterval() {
+float Renderer::GetFrameInterval() {
 	static int64_t last_time = 0;
 	if (last_time == 0) {
 		auto begin = std::chrono::system_clock::now();
