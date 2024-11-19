@@ -1,0 +1,14 @@
+#忽略生成的东西，外部库
+*.exe
+*.dll
+#忽略GL头文件
+/include/GL
+#忽略外部库文件
+/lib
+/include/stb_master
+/include/GL
+/include/glm
+#忽略.vscode文件夹
+/.vscode
+#忽略Obsidian的.obsidian文件夹
+/md/.obsidian

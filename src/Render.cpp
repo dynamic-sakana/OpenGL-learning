@@ -9,15 +9,18 @@ Renderer::Renderer(HWND handle, int width, int height) {
 	this->width = width;
 	this->height = height;
 
-	CreateGLContext();
+	this->CreateGLContext();
 	wglMakeCurrent(deviceContext, renderContext);
 	CALL(glewInit());
 
 	CALL(glViewport(0, 0, width, height));
 	program = new ShaderProgram("assets/VertShader.vert", "assets/FragShader.frag");
+	program2 = new ShaderProgram("assets/VertShader.vert", "assets/FragShader2.frag");
 	camera = new Camera();
 	model = new Model("assets/Sam.obj");
 	text = new Texture2D("assets/Sam.png");
+	model2 = new Model("assets/Sam.obj");
+	text2 = new Texture2D("assets/teapot.png");
 	this->InitializeGL();
 
 	CALL(glEnable(GL_CULL_FACE));
@@ -34,7 +37,7 @@ Renderer::~Renderer() {
 		ReleaseDC(handle, deviceContext);
 }
 
-bool Renderer::CreateGLContext() {
+inline bool Renderer::CreateGLContext() {
 	deviceContext = GetDC(handle);
 
 	PIXELFORMATDESCRIPTOR pfd;
@@ -66,10 +69,14 @@ void Renderer::Resize(int newWidth, int newHeight) {
 	CALL(glViewport(0, 0, newWidth, newHeight));
 }
 
-void Renderer::InitializeGL() {
+inline void Renderer::InitializeGL() {
 	model->SetShader(program);
 	model->SetTexture("sampler1", text);
-	model->Translate(glm::vec3(0.0f, 0.0f, -10.0f));
+	model->Translate(glm::vec3(-1.0f, 0.0f, -10.0f));
+
+	model2->SetShader(program2);
+	model2->SetTexture("sampler1", text2);
+	model2->Translate(glm::vec3(1.0f, 0.0f, -10.0f));
 }
 
 void Renderer::Render() {
@@ -83,8 +90,12 @@ void Renderer::Render() {
 	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
 
 	model->Draw(view, proj);
+	model2->Draw(view, proj);
 
 	float frameInterval = GetFrameInterval();
+
+	model->Rotate(glm::radians(30 * frameInterval), glm::vec3(0.0f, 1.0f, 0.0f));
+	model2->Rotate(glm::radians(30 * frameInterval), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	CameraMove(frameInterval);
 
@@ -193,7 +204,7 @@ void Renderer::WhenMouseMove(int currentX, int currentY) {
 	initY = currentY;
 }
 
-float Renderer::GetFrameInterval() {
+inline float Renderer::GetFrameInterval() {
 	static int64_t last_time = 0;
 	if (last_time == 0) {
 		auto begin = std::chrono::system_clock::now();

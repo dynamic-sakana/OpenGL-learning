@@ -45,13 +45,18 @@ private:
 	HDC deviceContext;		// 设备上下文
 	HGLRC renderContext;	// OpenGL渲染上下文
 	HWND handle;			// 窗口句柄
+
 	ShaderProgram* program;	// 着色器程序
 	ShaderProgram* program2;
+
 	Camera* camera;			// 摄像机
+
 	Texture2D* text;		// 纹理
 	Texture2D* text2;
+
 	Model* model;			// 模型
 	Model* model2;
+	
 	int width, height;		// 窗口的长和宽
 	// 键盘事件
 	bool w_pressed = false, s_pressed = false, a_pressed = false, d_pressed = false, q_pressed = false, e_pressed = false;
