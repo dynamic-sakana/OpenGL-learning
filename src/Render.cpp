@@ -141,6 +141,12 @@ void Renderer::WhenKeyPress(int keyNo) {
 	case 'E':
 		e_pressed = true;
 		break;
+	case VK_SPACE:
+		e_pressed = true;
+		break;
+	case VK_LCONTROL:
+		q_pressed = true;
+		break;
 	}
 }
 
@@ -163,6 +169,12 @@ void Renderer::WhenKeyLoose(int keyNo) {
 		break;
 	case 'E':
 		e_pressed = false;
+		break;
+	case VK_SPACE:
+		e_pressed = false;
+		break;
+	case VK_LCONTROL:
+		q_pressed = false;
 		break;
 	}
 }
